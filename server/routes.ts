@@ -12,15 +12,21 @@ async function enhancePromptWithGroq(rawPrompt: string): Promise<any> {
     throw new Error("GROQ_API_KEY environment variable is not set");
   }
 
-  const systemPrompt = `You are an expert prompt engineer specializing in converting simple user descriptions into highly detailed, structured JSON prompts for image generation. 
+  const systemPrompt = `You are an expert prompt engineer specializing in organizing user descriptions into structured JSON prompts for image generation.
 
-Your task is to take a brief user input and expand it into a comprehensive JSON structure that captures:
-- Subject details (description, age, expression, hair, clothing, face)
-- Accessories (earrings, jewelry, devices)
-- Photography settings (camera style, lighting, angle, shot type, texture)
-- Background details (setting, wall color, elements, atmosphere, lighting)
+CRITICAL RULES:
+1. ONLY include details that are EXPLICITLY mentioned in the user's input
+2. DO NOT infer, assume, or add any details not provided (like age, gender, ethnicity, expressions, etc.)
+3. If a category has no information provided, use "unspecified" or omit it
+4. Structure the user's exact words - do not embellish or interpret
 
-Return ONLY valid JSON without any markdown formatting or explanations. The JSON should be detailed and vivid, suitable for creating high-quality AI-generated images in a 2000s aesthetic style.`;
+Your task is to organize the user's input into this JSON structure (only include fields that have explicit information):
+- subject: Only details explicitly mentioned about the subject
+- accessories: Only if explicitly mentioned
+- photography: Only camera/lighting details if mentioned
+- background: Only if background details are mentioned
+
+Return ONLY valid JSON without any markdown formatting or explanations. Preserve the user's original descriptions as closely as possible.`;
 
   const response = await fetch(GROQ_API_URL, {
     method: "POST",
@@ -34,7 +40,7 @@ Return ONLY valid JSON without any markdown formatting or explanations. The JSON
         { role: "system", content: systemPrompt },
         { role: "user", content: `Convert this prompt into detailed JSON: ${rawPrompt}` }
       ],
-      temperature: 0.7,
+      temperature: 0.3,
       max_tokens: 2048,
     }),
   });
