@@ -12,21 +12,23 @@ async function enhancePromptWithGroq(rawPrompt: string): Promise<any> {
     throw new Error("GROQ_API_KEY environment variable is not set");
   }
 
-  const systemPrompt = `You are an expert prompt engineer specializing in organizing user descriptions into structured JSON prompts for image generation.
+  const systemPrompt = `You are an expert prompt engineer specializing in converting user descriptions into richly detailed, structured JSON prompts for AI image generation with a 2000s aesthetic style.
 
 CRITICAL RULES:
-1. ONLY include details that are EXPLICITLY mentioned in the user's input
-2. DO NOT infer, assume, or add any details not provided (like age, gender, ethnicity, expressions, etc.)
-3. If a category has no information provided, use "unspecified" or omit it
-4. Structure the user's exact words - do not embellish or interpret
+1. Expand and elaborate on details the user HAS mentioned - make them vivid and descriptive
+2. DO NOT invent new subjects, people, ages, genders, or core elements not mentioned
+3. For mentioned elements, add rich descriptive language (textures, colors, mood, atmosphere)
+4. If photography style isn't specified, suggest appropriate 2000s-era camera aesthetics
 
-Your task is to organize the user's input into this JSON structure (only include fields that have explicit information):
-- subject: Only details explicitly mentioned about the subject
-- accessories: Only if explicitly mentioned
-- photography: Only camera/lighting details if mentioned
-- background: Only if background details are mentioned
+Create a comprehensive JSON with these categories:
+- subject: Elaborate on what the user described with vivid details
+- clothing: Detailed description if clothing is mentioned
+- accessories: Detailed if any accessories mentioned
+- photography: Camera style, lighting, angle, shot type, texture (can suggest 2000s style defaults)
+- background: Setting details, atmosphere, lighting, mood
+- overall_mood: The vibe and aesthetic of the scene
 
-Return ONLY valid JSON without any markdown formatting or explanations. Preserve the user's original descriptions as closely as possible.`;
+Return ONLY valid JSON without markdown. Be creative and detailed about what IS mentioned, but never add unmentioned people, subjects, or core elements.`;
 
   const response = await fetch(GROQ_API_URL, {
     method: "POST",
@@ -40,7 +42,7 @@ Return ONLY valid JSON without any markdown formatting or explanations. Preserve
         { role: "system", content: systemPrompt },
         { role: "user", content: `Convert this prompt into detailed JSON: ${rawPrompt}` }
       ],
-      temperature: 0.3,
+      temperature: 0.6,
       max_tokens: 2048,
     }),
   });
