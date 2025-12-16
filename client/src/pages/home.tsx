@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Sparkles, Terminal, Cpu, Zap, RotateCcw } from "lucide-react";
+import { Copy, ArrowRight, Loader2, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import bgImage from "@assets/generated_images/abstract_dark_cybernetic_data_flow_background.png";
 
 type EnhancedData = {
   original_prompt: string;
@@ -33,12 +31,11 @@ export default function Home() {
   const [result, setResult] = useState<EnhancedData | null>(null);
   const { toast } = useToast();
 
-  const handleTransmute = () => {
+  const handleEnhance = () => {
     if (!prompt.trim()) {
       toast({
-        title: "Empty Input",
-        description: "Please enter a prompt to transmute.",
-        variant: "destructive",
+        title: "Input required",
+        description: "Please enter a prompt to begin.",
       });
       return;
     }
@@ -51,35 +48,30 @@ export default function Home() {
       const enhanced = enhancePrompt(prompt);
       setResult(enhanced);
       setIsLoading(false);
-      toast({
-        title: "Transmutation Complete",
-        description: "Your prompt has been enhanced.",
-      });
-    }, 1500);
+    }, 1200);
   };
 
   const enhancePrompt = (input: string): EnhancedData => {
-    // Mock enhancement logic
-    const keywords = ["detailed", "high quality", "4k", "professional"];
-    const tone = input.length > 50 ? "Narrative" : "Direct";
+    const keywords = ["clear", "concise", "structured"];
+    const tone = input.length > 50 ? "Detailed" : "Direct";
     
     return {
       original_prompt: input,
-      enhanced_prompt: `${input}, ${keywords.join(", ")}, cinematic lighting, highly detailed, trending on artstation`,
+      enhanced_prompt: `${input}. Ensure the output is strictly formatted JSON. Focus on ${keywords.join(", ")}.`,
       analysis: {
-        intent: "Creative Generation",
-        complexity: input.length > 100 ? "High" : "Medium",
+        intent: "Structured Extraction",
+        complexity: input.length > 100 ? "High" : "Standard",
         tone: tone,
       },
       suggested_parameters: {
-        temperature: 0.7,
-        max_tokens: 2048,
-        top_p: 0.9,
+        temperature: 0.3,
+        max_tokens: 1024,
+        top_p: 1.0,
       },
       metadata: {
         timestamp: new Date().toISOString(),
-        version: "v2.5.0-alpha",
-        processing_time_ms: Math.floor(Math.random() * 500) + 100,
+        version: "v1.0.0",
+        processing_time_ms: Math.floor(Math.random() * 200) + 50,
       },
     };
   };
@@ -88,189 +80,140 @@ export default function Home() {
     if (result) {
       navigator.clipboard.writeText(JSON.stringify(result, null, 2));
       toast({
-        title: "Copied",
-        description: "JSON copied to clipboard.",
+        description: "Copied to clipboard",
       });
     }
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden text-foreground font-sans selection:bg-primary selection:text-primary-foreground">
-      {/* Background with overlay */}
-      <div 
-        className="fixed inset-0 z-[-1] opacity-20 bg-cover bg-center pointer-events-none"
-        style={{ backgroundImage: `url(${bgImage})` }}
-      />
-      <div className="fixed inset-0 z-[-1] bg-gradient-to-b from-background via-transparent to-background pointer-events-none" />
-      
-      {/* Scanline effect */}
-      <div className="fixed inset-0 z-50 pointer-events-none opacity-[0.03] scanline" />
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-black selection:text-white">
+      {/* Navigation / Header */}
+      <header className="border-b border-border/40 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="text-sm font-medium tracking-tight">Prompt Enhancer</div>
+          <div className="text-xs text-muted-foreground font-mono">v1.0</div>
+        </div>
+      </header>
 
-      <div className="container mx-auto px-4 py-12 max-w-6xl relative z-10">
-        
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center mb-16 space-y-4"
-        >
-          <div className="inline-flex items-center justify-center p-2 rounded-full border border-primary/20 bg-primary/5 mb-4 backdrop-blur-sm">
-            <Cpu className="w-4 h-4 text-primary mr-2" />
-            <span className="text-xs font-mono text-primary tracking-widest uppercase">System Online // v2.5.0</span>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-primary/80 to-secondary/80 text-glow">
-            PROMPT ALCHEMIST
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-light border-l-2 border-primary/30 pl-4 text-left md:text-center md:border-l-0 md:pl-0">
-            Transmute raw ideas into structured, machine-perfect JSON data. 
-            <br className="hidden md:block"/>
-            Enhance clarity, specificity, and execution parameters.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      <main className="flex-grow container mx-auto px-6 py-12 md:py-24 max-w-5xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24">
           
-          {/* Input Section */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <Card className="glass-panel border-primary/20 overflow-hidden relative group">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary opacity-50 group-hover:opacity-100 transition-opacity" />
-              
-              <div className="p-6 space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-bold font-mono flex items-center text-primary">
-                    <Terminal className="w-5 h-5 mr-2" />
-                    INPUT_STREAM
-                  </h2>
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                  </div>
-                </div>
+          {/* Left Column: Input */}
+          <section className="space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h1 className="text-4xl font-light tracking-tight mb-4 text-primary">
+                Input
+              </h1>
+              <p className="text-muted-foreground text-lg font-light mb-8 leading-relaxed">
+                Enter your raw prompt below. We will structure and enhance it for optimal machine interpretation.
+              </p>
+            </motion.div>
 
-                <div className="relative">
-                  <Textarea
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Enter your raw prompt here... e.g., 'A cyberpunk city at night'"
-                    className="min-h-[300px] bg-black/20 border-primary/10 focus:border-primary/50 font-mono text-sm resize-none p-4 rounded-md focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/30"
-                  />
-                  <div className="absolute bottom-4 right-4 text-xs text-muted-foreground/50 font-mono pointer-events-none">
-                    {prompt.length} CHARS
-                  </div>
-                </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="group relative"
+            >
+              <Textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Type something..."
+                className="min-h-[320px] resize-none border-0 border-l border-border pl-6 rounded-none focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg placeholder:text-muted-foreground/40 transition-colors"
+              />
+              <div className="absolute top-0 left-0 w-[1px] h-0 bg-primary transition-all duration-500 group-focus-within:h-full" />
+            </motion.div>
 
-                <Button 
-                  onClick={handleTransmute} 
-                  disabled={isLoading}
-                  className="w-full h-14 text-lg font-bold tracking-widest uppercase bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 hover:border-primary shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_30px_-5px_hsl(var(--primary)/0.6)] transition-all duration-300 relative overflow-hidden group/btn"
-                >
-                  <span className="relative z-10 flex items-center justify-center">
-                    {isLoading ? (
-                      <>
-                        <RotateCcw className="w-5 h-5 mr-3 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-5 h-5 mr-3" />
-                        Transmute
-                      </>
-                    )}
-                  </span>
-                  <div className="absolute inset-0 bg-primary/10 translate-y-[100%] group-hover/btn:translate-y-0 transition-transform duration-300 ease-out" />
-                </Button>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Button
+                onClick={handleEnhance}
+                disabled={isLoading}
+                className="h-14 px-8 rounded-none text-base font-normal bg-primary text-primary-foreground hover:bg-primary/90 transition-all w-full md:w-auto flex items-center justify-between group"
+              >
+                <span>{isLoading ? "Processing" : "Process Prompt"}</span>
+                {isLoading ? (
+                  <Loader2 className="ml-4 w-4 h-4 animate-spin" />
+                ) : (
+                  <ArrowRight className="ml-4 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                )}
+              </Button>
+            </motion.div>
+          </section>
+
+          {/* Right Column: Output */}
+          <section className="relative">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="h-full flex flex-col"
+            >
+               <div className="flex items-center justify-between mb-8">
+                <h2 className="text-4xl font-light tracking-tight text-primary">
+                  Output
+                </h2>
+                {result && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={copyToClipboard}
+                    className="rounded-full w-10 h-10 border-border hover:bg-secondary hover:text-foreground transition-colors"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
-            </Card>
-          </motion.div>
 
-          {/* Output Section */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <Card className="glass-panel border-secondary/20 h-full min-h-[480px] relative overflow-hidden flex flex-col">
-               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-primary opacity-50" />
-               
-               <div className="p-6 flex-grow flex flex-col">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold font-mono flex items-center text-secondary">
-                    <Zap className="w-5 h-5 mr-2" />
-                    OUTPUT_DATA
-                  </h2>
-                  {result && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={copyToClipboard}
-                      className="text-muted-foreground hover:text-foreground font-mono text-xs"
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      COPY_JSON
-                    </Button>
-                  )}
-                </div>
-
-                <div className="flex-grow bg-black/40 rounded-md border border-white/5 p-4 relative overflow-hidden group">
-                  {isLoading ? (
-                    <div className="absolute inset-0 flex items-center justify-center flex-col space-y-4">
-                      <div className="relative w-16 h-16">
-                        <motion.div 
-                          className="absolute inset-0 border-4 border-primary/30 rounded-full"
-                          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        />
-                        <motion.div 
-                          className="absolute inset-0 border-t-4 border-primary rounded-full"
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        />
-                      </div>
-                      <div className="text-xs font-mono text-primary animate-pulse">
-                        ANALYZING SEMANTICS...
-                      </div>
-                    </div>
-                  ) : result ? (
+              <div className="flex-grow relative min-h-[400px]">
+                <AnimatePresence mode="wait">
+                  {result ? (
                     <motion.div
+                      key="result"
                       initial={{ opacity: 0, filter: "blur(10px)" }}
                       animate={{ opacity: 1, filter: "blur(0px)" }}
-                      className="h-full overflow-auto custom-scrollbar"
+                      exit={{ opacity: 0, filter: "blur(10px)" }}
+                      transition={{ duration: 0.4 }}
+                      className="bg-secondary/50 p-6 h-full overflow-auto font-mono text-sm leading-relaxed text-foreground/80 border border-border/50"
                     >
-                      <pre className="font-mono text-sm text-blue-300 leading-relaxed">
-                        <code>
-                          {JSON.stringify(result, null, 2)}
-                        </code>
-                      </pre>
+                      <pre>{JSON.stringify(result, null, 2)}</pre>
                     </motion.div>
                   ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-muted-foreground/30 space-y-4">
-                      <Terminal className="w-16 h-16 opacity-20" />
-                      <p className="font-mono text-sm">AWAITING INPUT STREAM...</p>
-                    </div>
+                    <motion.div
+                      key="empty"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 flex items-center justify-center border border-dashed border-border"
+                    >
+                      <span className="text-muted-foreground font-light">
+                        Waiting for input...
+                      </span>
+                    </motion.div>
                   )}
-                  
-                  {/* Decorative corner accents */}
-                  <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-white/20" />
-                  <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-white/20" />
-                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-white/20" />
-                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-white/20" />
-                </div>
-               </div>
-            </Card>
-          </motion.div>
-
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </section>
         </div>
-      </div>
-      
-      {/* Decorative background elements */}
-      <div className="fixed top-1/4 -left-20 w-96 h-96 bg-primary/20 rounded-full blur-[128px] pointer-events-none mix-blend-screen" />
-      <div className="fixed bottom-1/4 -right-20 w-96 h-96 bg-secondary/20 rounded-full blur-[128px] pointer-events-none mix-blend-screen" />
+      </main>
+
+      <footer className="border-t border-border/40 py-8 mt-auto">
+         <div className="container mx-auto px-6 flex justify-between items-center text-xs text-muted-foreground">
+            <span>&copy; 2024 Prompt Enhancer</span>
+            <div className="flex space-x-6">
+              <a href="#" className="hover:text-foreground transition-colors">Documentation</a>
+              <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+            </div>
+         </div>
+      </footer>
     </div>
   );
 }
