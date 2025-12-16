@@ -1,17 +1,87 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wind, Command, ArrowUpRight, Copy, Check } from "lucide-react";
+import { Wind, Command, ArrowUpRight, Copy, Check, History, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import bgImage from "@assets/generated_images/ethereal_airy_gradient_background_with_soft_light.png";
+
+interface HistoryItem {
+  id: string;
+  rawPrompt: string;
+  enhancedPrompt: any;
+  timestamp: number;
+}
+
+const HISTORY_KEY = "oxyprompt_history";
+const MAX_HISTORY_ITEMS = 50;
+
+function loadHistory(): HistoryItem[] {
+  try {
+    const stored = localStorage.getItem(HISTORY_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(history: HistoryItem[]) {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, MAX_HISTORY_ITEMS)));
+  } catch {
+    console.error("Failed to save history to localStorage");
+  }
+}
 
 export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setHistory(loadHistory());
+  }, []);
+
+  const addToHistory = (rawPrompt: string, enhancedPrompt: any) => {
+    const newItem: HistoryItem = {
+      id: Date.now().toString(),
+      rawPrompt,
+      enhancedPrompt,
+      timestamp: Date.now(),
+    };
+    const updatedHistory = [newItem, ...history];
+    setHistory(updatedHistory);
+    saveHistory(updatedHistory);
+  };
+
+  const deleteFromHistory = (id: string) => {
+    const updatedHistory = history.filter(item => item.id !== id);
+    setHistory(updatedHistory);
+    saveHistory(updatedHistory);
+    toast({
+      title: "Deleted",
+      description: "History item removed",
+    });
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    saveHistory([]);
+    toast({
+      title: "Cleared",
+      description: "All history has been cleared",
+    });
+  };
+
+  const loadFromHistory = (item: HistoryItem) => {
+    setPrompt(item.rawPrompt);
+    setResult(item.enhancedPrompt);
+    setShowHistory(false);
+  };
 
   const handleProcess = async () => {
     if (!prompt.trim()) return;
@@ -35,6 +105,7 @@ export default function Home() {
 
       const data = await response.json();
       setResult(data.enhancedPrompt);
+      addToHistory(prompt, data.enhancedPrompt);
       
       toast({
         title: "Success!",
@@ -63,6 +134,11 @@ export default function Home() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden font-sans text-slate-700 selection:bg-sky-200 selection:text-sky-900">
       
@@ -73,6 +149,98 @@ export default function Home() {
       />
       <div className="fixed inset-0 z-[-1] bg-white/30 backdrop-blur-[2px]" />
 
+      {/* History Panel */}
+      <AnimatePresence>
+        {showHistory && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
+            onClick={() => setShowHistory(false)}
+          >
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-white/90 backdrop-blur-xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-200/50">
+                <h2 className="text-lg sm:text-xl font-display font-medium text-slate-800">Prompt History</h2>
+                <div className="flex items-center gap-2">
+                  {history.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearHistory}
+                      className="text-red-500 hover:text-red-600"
+                      data-testid="button-clear-history"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Clear All
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowHistory(false)}
+                    data-testid="button-close-history"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="overflow-y-auto h-[calc(100vh-80px)] p-4 sm:p-6 space-y-3">
+                {history.length === 0 ? (
+                  <div className="text-center py-12 text-slate-400">
+                    <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No history yet</p>
+                    <p className="text-sm mt-1">Your enhanced prompts will appear here</p>
+                  </div>
+                ) : (
+                  history.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-white/60 rounded-xl p-4 border border-slate-200/50 hover:bg-white/80 transition-colors cursor-pointer group"
+                      onClick={() => loadFromHistory(item)}
+                      data-testid={`history-item-${item.id}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-slate-700 line-clamp-2 font-medium">
+                            {item.rawPrompt}
+                          </p>
+                          <p className="text-xs text-slate-400 mt-2">
+                            {formatDate(item.timestamp)}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteFromHistory(item.id);
+                          }}
+                          data-testid={`button-delete-${item.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-20 max-w-7xl min-h-screen flex flex-col justify-center">
         
         {/* Header */}
@@ -82,9 +250,25 @@ export default function Home() {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="mb-8 sm:mb-16 md:mb-24 space-y-2"
         >
-          <div className="flex items-center space-x-2 text-sky-600 mb-2 sm:mb-4 opacity-80">
-            <Wind className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase font-display">OxyPrompt v1</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-sky-600 mb-2 sm:mb-4 opacity-80">
+              <Wind className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase font-display">OxyPrompt v1</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowHistory(true)}
+              className="relative"
+              data-testid="button-open-history"
+            >
+              <History className="w-5 h-5 text-slate-500" />
+              {history.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-sky-500 text-white text-[10px] rounded-full flex items-center justify-center">
+                  {history.length > 99 ? "99+" : history.length}
+                </span>
+              )}
+            </Button>
           </div>
           <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl font-display font-light tracking-tighter text-slate-800">
             Breathe <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-500">Clarity</span>
