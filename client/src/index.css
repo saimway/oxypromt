@@ -24,45 +24,46 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
 
-  --font-sans: "Inter", sans-serif;
-  --font-mono: "Geist Mono", monospace;
+  --font-sans: "Nunito", sans-serif;
+  --font-display: "Fredoka", sans-serif;
+  --font-mono: "Space Mono", monospace;
 
-  --radius-sm: 0.125rem;
-  --radius-md: 0.25rem;
-  --radius-lg: 0.375rem;
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
 }
 
 :root {
-  /* Minimalist / Swiss Style Theme */
-  --background: 0 0% 100%; /* Pure White */
-  --foreground: 0 0% 9%; /* Almost Black */
+  /* Soft Pop / Clay Theme */
+  --background: 260 100% 97%; /* Very pale purple */
+  --foreground: 260 20% 20%; /* Dark purple-grey */
 
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 9%;
+  --card-foreground: 260 20% 20%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 9%;
+  --popover-foreground: 260 20% 20%;
 
-  --primary: 0 0% 9%; /* Black */
-  --primary-foreground: 0 0% 98%; /* White */
+  --primary: 250 90% 65%; /* Soft Purple */
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 0 0% 96.1%; /* Very Light Gray */
-  --secondary-foreground: 0 0% 9%;
+  --secondary: 320 80% 90%; /* Soft Pink */
+  --secondary-foreground: 320 60% 40%;
 
-  --muted: 0 0% 96.1%;
-  --muted-foreground: 0 0% 45.1%;
+  --muted: 260 20% 94%;
+  --muted-foreground: 260 10% 50%;
 
-  --accent: 0 0% 96.1%;
-  --accent-foreground: 0 0% 9%;
+  --accent: 190 80% 90%; /* Soft Blue */
+  --accent-foreground: 190 60% 30%;
 
-  --destructive: 0 84.2% 60.2%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 0 0% 89.8%;
-  --input: 0 0% 89.8%;
-  --ring: 0 0% 9%;
+  --border: 260 20% 90%;
+  --input: 260 20% 90%;
+  --ring: 250 90% 65%;
 
-  --radius: 0rem; /* Sharp corners for minimalism */
+  --radius: 1.5rem;
 }
 
 @layer base {
@@ -71,11 +72,34 @@
   }
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    background-image: 
+      radial-gradient(at 10% 10%, hsl(320 80% 90%) 0px, transparent 50%),
+      radial-gradient(at 90% 90%, hsl(190 80% 90%) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, hsl(260 100% 97%) 0px, transparent 50%);
   }
 }
 
 @layer utilities {
-  .subtle-border {
-    @apply border border-black/5;
+  .clay-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: 
+      20px 20px 60px #d1d1d9, 
+      -20px -20px 60px #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+
+  .clay-button {
+    box-shadow: 
+      8px 8px 16px rgba(139, 92, 246, 0.15),
+      -8px -8px 16px rgba(255, 255, 255, 0.8);
+    transition: all 0.2s ease;
+  }
+  
+  .clay-button:active {
+    box-shadow: 
+      inset 4px 4px 8px rgba(139, 92, 246, 0.1),
+      inset -4px -4px 8px rgba(255, 255, 255, 0.9);
+    transform: scale(0.98);
   }
 }
