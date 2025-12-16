@@ -1,8 +1,8 @@
-# OxyPrompt v2
+# OxyPrompt v1
 
 ## Overview
 
-OxyPrompt v2 is an AI-powered prompt enhancement tool that transforms simple user prompts into detailed, structured JSON for AI image generation. The application uses Groq's Llama AI model to expand brief descriptions into comprehensive prompts with detailed subject, photography, and background specifications suitable for creating 2000s-style aesthetic images.
+OxyPrompt v1 is an AI-powered prompt enhancement tool that transforms simple user prompts into detailed, structured JSON for AI image generation. The application uses Groq's Llama AI model to expand brief descriptions into comprehensive prompts with detailed subject, photography, and background specifications suitable for creating 2000s-style aesthetic images.
 
 ## User Preferences
 

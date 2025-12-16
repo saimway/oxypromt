@@ -84,7 +84,7 @@ export default function Home() {
         >
           <div className="flex items-center space-x-2 text-sky-600 mb-2 sm:mb-4 opacity-80">
             <Wind className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase font-display">OxyPrompt v2</span>
+            <span className="text-xs sm:text-sm font-semibold tracking-wide uppercase font-display">OxyPrompt v1</span>
           </div>
           <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-8xl font-display font-light tracking-tighter text-slate-800">
             Breathe <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-500">Clarity</span>
