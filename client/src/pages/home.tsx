@@ -6,38 +6,61 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import bgImage from "@assets/generated_images/ethereal_airy_gradient_background_with_soft_light.png";
 
-type EnhancedData = {
-  clarified_intent: string;
-  structured_prompt: string;
-  parameters: Record<string, any>;
-  tags: string[];
-};
-
 export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<EnhancedData | null>(null);
+  const [result, setResult] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
-  const handleProcess = () => {
+  const handleProcess = async () => {
     if (!prompt.trim()) return;
 
     setIsLoading(true);
     setResult(null);
 
-    setTimeout(() => {
-      setResult({
-        clarified_intent: "Generate high-fidelity visual asset based on abstract description.",
-        structured_prompt: `Subject: ${prompt}\nStyle: Photorealistic, Airy, Minimalist\nLighting: Soft diffused daylight\nCamera: 85mm f/1.8\nRender: Octane Render, 8k`,
-        parameters: {
-          aspect_ratio: "16:9",
-          chaos: 10,
-          stylize: 250
+    try {
+      const response = await fetch("/api/enhance-prompt", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        tags: ["ethereal", "glass", "light", "clean"]
+        body: JSON.stringify({ rawPrompt: prompt }),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to enhance prompt");
+      }
+
+      const data = await response.json();
+      setResult(data.enhancedPrompt);
+      
+      toast({
+        title: "Success!",
+        description: "Your prompt has been enhanced",
+      });
+    } catch (error) {
+      console.error("Error enhancing prompt:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to enhance prompt",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
+  };
+
+  const handleCopy = () => {
+    if (!result) return;
+    navigator.clipboard.writeText(JSON.stringify(result, null, 2));
+    setCopied(true);
+    toast({
+      title: "Copied!",
+      description: "Enhanced prompt copied to clipboard",
+    });
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -91,6 +114,7 @@ export default function Home() {
                  onChange={(e) => setPrompt(e.target.value)}
                  placeholder="Describe your vision..."
                  className="min-h-[300px] bg-transparent border-0 resize-none text-2xl md:text-3xl font-light leading-normal placeholder:text-slate-300 focus-visible:ring-0 p-0 text-slate-700"
+                 data-testid="input-prompt"
                />
 
                <div className="mt-8 flex justify-end">
@@ -98,6 +122,7 @@ export default function Home() {
                    onClick={handleProcess}
                    disabled={isLoading || !prompt.trim()}
                    className="h-14 px-8 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                   data-testid="button-enhance"
                  >
                    {isLoading ? (
                      <div className="flex items-center space-x-2">
@@ -132,33 +157,21 @@ export default function Home() {
                 >
                   <div className="flex items-center justify-between mb-8 pb-8 border-b border-slate-200/50">
                     <h3 className="text-xl font-display font-medium text-slate-800">Crystallized Output</h3>
-                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/50 text-slate-500">
-                      <Copy className="w-5 h-5" />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="rounded-full hover:bg-white/50 text-slate-500"
+                      onClick={handleCopy}
+                      data-testid="button-copy"
+                    >
+                      {copied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
                     </Button>
                   </div>
 
-                  <div className="space-y-8 overflow-y-auto pr-2 custom-scrollbar">
-                    
-                    <div>
-                      <h4 className="text-xs font-bold text-sky-500 uppercase tracking-widest mb-2">Intent</h4>
-                      <p className="text-lg text-slate-700 leading-relaxed font-light">{result.clarified_intent}</p>
+                  <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar max-h-[500px]" data-testid="output-result">
+                    <div className="bg-white/40 rounded-xl p-6 font-mono text-sm text-slate-600 border border-white/50 shadow-inner">
+                      <pre className="whitespace-pre-wrap">{JSON.stringify(result, null, 2)}</pre>
                     </div>
-
-                    <div>
-                      <h4 className="text-xs font-bold text-sky-500 uppercase tracking-widest mb-3">Structure</h4>
-                      <div className="bg-white/40 rounded-xl p-6 font-mono text-sm text-slate-600 border border-white/50 shadow-inner">
-                        <pre className="whitespace-pre-wrap">{result.structured_prompt}</pre>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {result.tags.map(tag => (
-                        <span key={tag} className="px-3 py-1 bg-white/60 border border-white/40 rounded-full text-xs font-medium text-slate-500">
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-
                   </div>
                 </motion.div>
               ) : (
