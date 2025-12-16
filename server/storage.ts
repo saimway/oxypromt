@@ -1,37 +1,33 @@
-import { type User, type InsertUser } from "@shared/schema";
+import { type Prompt, type InsertPrompt } from "@shared/schema";
 import { randomUUID } from "crypto";
 
-// modify the interface with any CRUD methods
-// you might need
-
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createPrompt(prompt: InsertPrompt): Promise<Prompt>;
+  getPrompts(limit?: number): Promise<Prompt[]>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private prompts: Map<string, Prompt>;
 
   constructor() {
-    this.users = new Map();
+    this.prompts = new Map();
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createPrompt(insertPrompt: InsertPrompt): Promise<Prompt> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const prompt: Prompt = {
+      ...insertPrompt,
+      id,
+      createdAt: new Date(),
+    };
+    this.prompts.set(id, prompt);
+    return prompt;
+  }
+
+  async getPrompts(limit = 10): Promise<Prompt[]> {
+    return Array.from(this.prompts.values())
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, limit);
   }
 }
 
