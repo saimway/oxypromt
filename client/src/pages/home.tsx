@@ -106,7 +106,7 @@ export default function Home() {
       const data = await response.json();
       setResult(data.enhancedPrompt);
       addToHistory(prompt, data.enhancedPrompt);
-      
+
       toast({
         title: "Success!",
         description: "Your prompt has been enhanced",
@@ -125,7 +125,9 @@ export default function Home() {
 
   const handleCopy = () => {
     if (!result) return;
-    navigator.clipboard.writeText(JSON.stringify(result, null, 2));
+    // Copy the full text prompt instead of JSON
+    const textToCopy = result.fullPrompt || JSON.stringify(result, null, 2);
+    navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     toast({
       title: "Copied!",
@@ -141,9 +143,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-hidden font-sans text-slate-700 selection:bg-sky-200 selection:text-sky-900">
-      
+
       {/* Background Layer */}
-      <div 
+      <div
         className="fixed inset-0 z-[-1] bg-cover bg-center opacity-80"
         style={{ backgroundImage: `url(${bgImage})` }}
       />
@@ -192,7 +194,7 @@ export default function Home() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="overflow-y-auto h-[calc(100vh-80px)] p-4 sm:p-6 space-y-3">
                 {history.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
@@ -242,9 +244,9 @@ export default function Home() {
       </AnimatePresence>
 
       <main className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-20 max-w-7xl min-h-screen flex flex-col justify-center">
-        
+
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -278,7 +280,7 @@ export default function Home() {
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 md:gap-16 items-start">
-          
+
           {/* Input Glass Card */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -286,41 +288,41 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="glass-pane p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-[2rem] relative overflow-hidden group">
-               {/* Subtle glare effect */}
-               <div className="absolute -top-24 -left-24 w-48 h-48 bg-white/40 blur-[50px] pointer-events-none group-hover:bg-white/60 transition-colors duration-700" />
-               
-               <label className="block text-xs sm:text-sm font-medium text-slate-500 mb-4 sm:mb-6 font-display uppercase tracking-widest">
-                 Raw Input
-               </label>
-               
-               <Textarea
-                 value={prompt}
-                 onChange={(e) => setPrompt(e.target.value)}
-                 placeholder="Describe your vision..."
-                 className="min-h-[180px] sm:min-h-[250px] md:min-h-[300px] bg-transparent border-0 resize-none text-lg sm:text-xl md:text-2xl lg:text-3xl font-light leading-normal placeholder:text-slate-300 focus-visible:ring-0 p-0 text-slate-700"
-                 data-testid="input-prompt"
-               />
+              {/* Subtle glare effect */}
+              <div className="absolute -top-24 -left-24 w-48 h-48 bg-white/40 blur-[50px] pointer-events-none group-hover:bg-white/60 transition-colors duration-700" />
 
-               <div className="mt-4 sm:mt-6 md:mt-8 flex justify-end">
-                 <Button
-                   onClick={handleProcess}
-                   disabled={isLoading || !prompt.trim()}
-                   className="h-12 sm:h-14 px-6 sm:px-8 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                   data-testid="button-enhance"
-                 >
-                   {isLoading ? (
-                     <div className="flex items-center space-x-2">
-                       <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
-                       <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
-                       <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
-                     </div>
-                   ) : (
-                     <span className="flex items-center text-sm sm:text-base font-medium">
-                       Clarify <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-                     </span>
-                   )}
-                 </Button>
-               </div>
+              <label className="block text-xs sm:text-sm font-medium text-slate-500 mb-4 sm:mb-6 font-display uppercase tracking-widest">
+                Raw Input
+              </label>
+
+              <Textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Describe your vision..."
+                className="min-h-[180px] sm:min-h-[250px] md:min-h-[300px] bg-transparent border-0 resize-none text-lg sm:text-xl md:text-2xl lg:text-3xl font-light leading-normal placeholder:text-slate-300 focus-visible:ring-0 p-0 text-slate-700"
+                data-testid="input-prompt"
+              />
+
+              <div className="mt-4 sm:mt-6 md:mt-8 flex justify-end">
+                <Button
+                  onClick={handleProcess}
+                  disabled={isLoading || !prompt.trim()}
+                  className="h-12 sm:h-14 px-6 sm:px-8 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                  data-testid="button-enhance"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce" />
+                    </div>
+                  ) : (
+                    <span className="flex items-center text-sm sm:text-base font-medium">
+                      Clarify <ArrowUpRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+                    </span>
+                  )}
+                </Button>
+              </div>
             </div>
           </motion.div>
 
@@ -341,9 +343,9 @@ export default function Home() {
                 >
                   <div className="flex items-center justify-between mb-4 sm:mb-6 md:mb-8 pb-4 sm:pb-6 md:pb-8 border-b border-slate-200/50">
                     <h3 className="text-base sm:text-lg md:text-xl font-display font-medium text-slate-800">Crystallized Output</h3>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="rounded-full hover:bg-white/50 text-slate-500 h-8 w-8 sm:h-10 sm:w-10"
                       onClick={handleCopy}
                       data-testid="button-copy"
@@ -353,8 +355,29 @@ export default function Home() {
                   </div>
 
                   <div className="space-y-4 sm:space-y-6 overflow-y-auto pr-2 custom-scrollbar max-h-[250px] sm:max-h-[350px] md:max-h-[500px] flex-1" data-testid="output-result">
-                    <div className="bg-white/40 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 font-mono text-xs sm:text-sm text-slate-600 border border-white/50 shadow-inner">
-                      <pre className="whitespace-pre-wrap break-words">{JSON.stringify(result, null, 2)}</pre>
+                    <div className="bg-white/40 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-xs sm:text-sm text-slate-700 border border-white/50 shadow-inner">
+                      {result.fullPrompt ? (
+                        <div className="space-y-4">
+                          {result.fullPrompt.split(/\[([^\]]+)\]/).filter(Boolean).map((section: string, index: number) => {
+                            // Check if this is a header (odd indices are headers after split)
+                            const isHeader = index % 2 === 0 && section.includes(':');
+                            if (section.trim().startsWith('Header:') || section.trim().startsWith('Subject:') || section.trim().startsWith('Apparel') || section.trim().startsWith('Pose') || section.trim().startsWith('Environment')) {
+                              return (
+                                <div key={index} className="font-bold text-sky-700 text-sm sm:text-base border-b border-sky-200/50 pb-1">
+                                  [{section.trim()}]
+                                </div>
+                              );
+                            }
+                            return (
+                              <p key={index} className="whitespace-pre-wrap leading-relaxed">
+                                {section.trim()}
+                              </p>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <pre className="whitespace-pre-wrap break-words font-mono">{JSON.stringify(result, null, 2)}</pre>
+                      )}
                     </div>
                   </div>
                 </motion.div>
