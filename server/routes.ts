@@ -12,23 +12,34 @@ async function enhancePromptWithGroq(rawPrompt: string): Promise<any> {
     throw new Error("GROQ_API_KEY environment variable is not set");
   }
 
-  const systemPrompt = `You are an expert prompt engineer specializing in converting user descriptions into richly detailed, structured JSON prompts for AI image generation with a 2000s aesthetic style.
+  const systemPrompt = `You are an expert prompt engineer specializing in converting user descriptions into richly detailed,
 
-CRITICAL RULES:
-1. Expand and elaborate on details the user HAS mentioned - make them vivid and descriptive
-2. DO NOT invent new subjects, people, ages, genders, or core elements not mentioned
-3. For mentioned elements, add rich descriptive language (textures, colors, mood, atmosphere)
-4. If photography style isn't specified, suggest appropriate 2000s-era camera aesthetics
+  Take the user's simple input and expand it using the following template. Do not change the technical headers. Replace the bracketed [ ] sections with details inferred from the user's request
+  
+[Header: Technical Specs]
+Raw high-fidelity photograph, simulated {CAMERA_TYPE, e.g., iPhone 17 Pro / Sony A7R IV} sensor, 8K UHD, authentic digital noise, slight film grain.
+Lens: {LENS_TYPE, e.g., 24mm wide-angle or 85mm portrait}, Aperture: {F-STOP, e.g., f/1.8}, Shutter: 1/125s.
+Focus: Sharp focus on the eyes/face with realistic depth-of-field falloff.
 
-Create a comprehensive JSON with these categories:
-- subject: Elaborate on what the user described with vivid details
-- clothing: Detailed description if clothing is mentioned
-- accessories: Detailed if any accessories mentioned
-- photography: Camera style, lighting, angle, shot type, texture (can suggest 2000s style defaults)
-- background: Setting details, atmosphere, lighting, mood
-- overall_mood: The vibe and aesthetic of the scene
+[Subject: Bio-Fidelity & Identity]
+Subject: [INSERT DETAILED DESCRIPTION OF SUBJECT HERE]
+Skin Physics: Hyper-realistic skin texture, visible micropores on nose and cheeks, satin-finish hydration, natural skin translucency (subsurface scattering), slight natural imperfections (moles, freckles, capillaries).
+Hair Physics: High-definition strand separation, [INSERT HAIR COLOR/STYLE], creating natural shadows on the face, visible flyaways and baby hairs (vellus hair) along the hairline.
+Eyes: Highly detailed irises with radial patterns, sharp catchlights from the light source, moisture on the lower waterline.
 
-Return ONLY valid JSON without markdown. Be creative and detailed about what IS mentioned, but never add unmentioned people, subjects, or core elements.`;
+[Apparel & Material Physics]
+Wardrobe: [INSERT CLOTHING DETAILS]
+Textiles: Visible fabric weave, realistic tension lines and compression folds where fabric meets skin, tactile texture (e.g., knit fuzz, denim grain, silk sheen).
+
+[Pose & Expression]
+Pose: [INSERT POSE], anatomical accuracy in hands and joints, natural weight distribution.
+Expression: [INSERT MICRO-EXPRESSION, e.g., subtle smirk, relaxed gaze], eyes looking [DIRECTION].
+
+[Environment & Lighting Architecture]
+Setting: [INSERT LOCATION/BACKGROUND]
+Lighting: [INSERT LIGHTING TYPE, e.g., Soft diffused window light / Golden hour sun], accurate shadow casting, caustic reflections on shiny surfaces.
+Atmosphere: Photorealistic, "indistinguishable from reality," candid, [INSERT MOOD].
+.`;
 
   const response = await fetch(GROQ_API_URL, {
     method: "POST",
