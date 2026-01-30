@@ -8,23 +8,42 @@ async function enhancePromptWithGroq(rawPrompt: string): Promise<any> {
     throw new Error("GROQ_API_KEY environment variable is not set");
   }
 
-  const systemPrompt = `You are an expert prompt engineer specializing in converting user descriptions into richly detailed, structured JSON prompts for AI image generation with a 2000s aesthetic style.
+  const systemPrompt = `You are an expert prompt engineer specializing in converting simple user descriptions into richly detailed, hyper-realistic photography prompts.
 
-CRITICAL RULES:
-1. Expand and elaborate on details the user HAS mentioned - make them vivid and descriptive
-2. DO NOT invent new subjects, people, ages, genders, or core elements not mentioned
-3. For mentioned elements, add rich descriptive language (textures, colors, mood, atmosphere)
-4. If photography style isn't specified, suggest appropriate 2000s-era camera aesthetics
+Take the user's simple input and expand it using the following template. Do not change the technical headers. Replace the bracketed { } sections with details intelligently inferred from the user's request. Be creative and detailed when filling in the blanks.
 
-Create a comprehensive JSON with these categories:
-- subject: Elaborate on what the user described with vivid details
-- clothing: Detailed description if clothing is mentioned
-- accessories: Detailed if any accessories mentioned
-- photography: Camera style, lighting, angle, shot type, texture (can suggest 2000s style defaults)
-- background: Setting details, atmosphere, lighting, mood
-- overall_mood: The vibe and aesthetic of the scene
+IMPORTANT RULES:
+1. Keep ALL section headers exactly as shown (e.g., "[Header: Technical Specs]")
+2. Replace ALL bracketed placeholders with specific, contextually appropriate details
+3. If the user's input lacks certain details, infer reasonable and fitting choices
+4. Make the output feel like a professional photography brief
+5. Return ONLY the filled template, no additional commentary
 
-Return ONLY valid JSON without markdown. Be creative and detailed about what IS mentioned, but never add unmentioned people, subjects, or core elements.`;
+THE TEMPLATE:
+
+[Header: Technical Specs]
+Raw high-fidelity photograph, simulated {CAMERA_TYPE} sensor, 8K UHD, authentic digital noise, slight film grain.
+Lens: {LENS_TYPE}, Aperture: {F-STOP}, Shutter: 1/125s.
+Focus: Sharp focus on the eyes/face with realistic depth-of-field falloff.
+
+[Subject: Bio-Fidelity & Identity]
+Subject: {DETAILED_SUBJECT_DESCRIPTION}
+Skin Physics: Hyper-realistic skin texture, visible micropores on nose and cheeks, satin-finish hydration, natural skin translucency (subsurface scattering), slight natural imperfections (moles, freckles, capillaries).
+Hair Physics: High-definition strand separation, {HAIR_COLOR_AND_STYLE}, creating natural shadows on the face, visible flyaways and baby hairs (vellus hair) along the hairline.
+Eyes: Highly detailed irises with radial patterns, sharp catchlights from the light source, moisture on the lower waterline.
+
+[Apparel & Material Physics]
+Wardrobe: {CLOTHING_DETAILS}
+Textiles: Visible fabric weave, realistic tension lines and compression folds where fabric meets skin, tactile texture (e.g., knit fuzz, denim grain, silk sheen).
+
+[Pose & Expression]
+Pose: {POSE_DESCRIPTION}, anatomical accuracy in hands and joints, natural weight distribution.
+Expression: {MICRO_EXPRESSION}, eyes looking {EYE_DIRECTION}.
+
+[Environment & Lighting Architecture]
+Setting: {LOCATION_OR_BACKGROUND}
+Lighting: {LIGHTING_TYPE}, accurate shadow casting, caustic reflections on shiny surfaces.
+Atmosphere: Photorealistic, "indistinguishable from reality," candid, {MOOD_DESCRIPTION}.`;
 
   const response = await fetch(GROQ_API_URL, {
     method: "POST",
@@ -36,9 +55,9 @@ Return ONLY valid JSON without markdown. Be creative and detailed about what IS 
       model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: `Convert this prompt into detailed JSON: ${rawPrompt}` }
+        { role: "user", content: `Expand this into a detailed photography prompt using the template: "${rawPrompt}"` }
       ],
-      temperature: 0.6,
+      temperature: 0.7,
       max_tokens: 2048,
     }),
   });
@@ -50,24 +69,34 @@ Return ONLY valid JSON without markdown. Be creative and detailed about what IS 
 
   const data = await response.json();
   const content = data.choices[0]?.message?.content;
-  
+
   if (!content) {
     throw new Error("No content received from Groq API");
   }
 
-  let jsonContent = content.trim();
-  if (jsonContent.startsWith("```json")) {
-    jsonContent = jsonContent.replace(/```json\n?/g, "").replace(/```\n?$/g, "");
-  } else if (jsonContent.startsWith("```")) {
-    jsonContent = jsonContent.replace(/```\n?/g, "");
+  // Return the enhanced prompt as a structured object
+  const enhancedText = content.trim();
+
+  // Parse the template sections into a structured object
+  const sections: Record<string, string> = {};
+  const sectionRegex = /\[([^\]]+)\]\n([\s\S]*?)(?=\n\[|$)/g;
+  let match;
+
+  while ((match = sectionRegex.exec(enhancedText)) !== null) {
+    const sectionName = match[1].trim();
+    const sectionContent = match[2].trim();
+    sections[sectionName] = sectionContent;
   }
 
-  try {
-    return JSON.parse(jsonContent);
-  } catch (e) {
-    console.error("Failed to parse JSON:", jsonContent);
-    throw new Error("Failed to parse enhanced prompt as JSON");
-  }
+  return {
+    fullPrompt: enhancedText,
+    sections: sections,
+    technicalSpecs: sections["Header: Technical Specs"] || "",
+    subject: sections["Subject: Bio-Fidelity & Identity"] || "",
+    apparel: sections["Apparel & Material Physics"] || "",
+    pose: sections["Pose & Expression"] || "",
+    environment: sections["Environment & Lighting Architecture"] || ""
+  };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -90,8 +119,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (error) {
     console.error("Error enhancing prompt:", error);
-    res.status(500).json({ 
-      error: error instanceof Error ? error.message : "Failed to enhance prompt" 
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "Failed to enhance prompt"
     });
   }
 }
